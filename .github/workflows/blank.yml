@@ -1,0 +1,73 @@
+name: Build ONEX AI APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Extract Android project ZIP
+        run: |
+          mkdir -p project
+          unzip -o ONEX_AI_TERMUX_READY.zip -d project
+          find project -maxdepth 4 -type f | head -100
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build APK
+        working-directory: project
+        run: |
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          elif [ -f gradle/wrapper/gradle-wrapper.properties ]; then
+            gradle assembleDebug
+          else
+            gradle assembleDebug
+          fi
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ONEX-AI-APK
+          path: project/**/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+
+**Important:** Ye workflow tabhi kaam karega jab ZIP mein valid Android project ho aur uski Gradle configuration sahi ho. ZIP ke andar extra folder hone ya Android SDK configuration ki zaroorat hone par workflow ko adjust karna pad sakta hai.
+
+5. **Commit changes** dabao.
+
+## 📲 Step 3: APK build karo
+
+1. Repository mein **Actions** tab kholo.
+2. `Build ONEX AI APK` select karo.
+3. **Run workflow** dabao.
+4. Build complete hone ka wait karo.
+
+Agar green tick ✅ aata hai, to build successful hai.
+
+## ⬇️ Step 4: APK download karo
+
+1. Successful workflow run kholo.
+2. Page ke neeche **Artifacts** section tak jao.
+3. `ONEX-AI-APK` par click karo.
+4. ZIP download hogi. Use extract karo.
+5. Andar milne wali `.apk` file install karo.
+
+### Agar red ❌ error aaye
+Build log ka screenshot bhej dena. Main us error ke hisaab se workflow theek karne mein madad karunga.
